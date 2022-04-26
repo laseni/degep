@@ -29,4 +29,8 @@ class DialogueMoves(forms.Form):
 
 class MoveForm(forms.Form):
         dialogueID = forms.CharField()
+        
+class GameForm(forms.Form):
+        dialogueID = forms.CharField()
+        chat = forms.CharField()
                                                                                                                                                                                                        

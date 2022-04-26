@@ -9,9 +9,10 @@ urlpatterns = [
     path('signin/', views.signin),
     path('protocol_list/', views.playgame),
     path('reg_dialogue/', views.dialogue),
-    # path('move/', views.chat1),
+     path('move/', views.move),
     path('status/', views.status),
     path('chat/', views.chat),
     path('dgdl/', views.dgdl),
+    path('assert/', views.move_turn_1),
       
 ]

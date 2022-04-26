@@ -9,6 +9,7 @@ from .forms import DialogueCreateForm
 from .forms import ChatForm
 from .forms import DialogueMoves
 from .forms import MoveForm
+from .forms import GameForm
 
 def index(request):
     return render(request, 'index.html')
@@ -122,7 +123,7 @@ def status(request):
 
 def move(request):
     if request.method == 'POST':
-            form = CreateGameForm(request.POST)
+            form = MoveForm(request.POST)
             if form.is_valid():
                     dialogueId = form.cleaned_data['dialogueID']
                     url = "http://localhost:8888/dgep/v1/dialogue/"+dialogueId+"/moves"
@@ -137,7 +138,7 @@ def move(request):
                         data = response.text
                         return HttpResponse(data)   
     context ={}
-    context['form']=  CreateGameForm()
+    context['form']=  MoveForm()
     return render(request, "chat.html", context) 
 
 
@@ -158,6 +159,32 @@ def playgame(request):
     protocol = response.text
     return render(request, 'protocol.html', {'protocol':protocol})
 
+def move_turn_1(request):
+     if request.method == 'POST':
+            form = GameForm(request.POST)
+            if form.is_valid():
+                    dialogueId = form.cleaned_data['dialogueID']
+                    chat = form.cleaned_data['chat']
+                    url = "http://localhost:8888/dgep/v1/dialogue/"+dialogueId+"/interaction/Assert"
+        
+                    headers = {
+                            "accept": "application/json",
+                            "X-AUTH-TOKEN":  request.session.get('token')
+                            }
+                    data = {
+                                "speaker": request.session.get('player1'),
+                                "target": request.session.get('player2'),
+                                "reply": {
+                                    "p": chat
+                                }
+                                }
+                    response = requests.post(url, headers=headers, json=data)
+                    if response.status_code == 200:
+                        data = response.text
+                        return HttpResponse(data)
+     context ={}
+     context['form']=  GameForm()
+     return render(request, "dialogue.html", context) 
 
 
 def dialogue(request):
@@ -174,7 +201,8 @@ def dialogue(request):
                     "accept": "application/json",
                     "X-AUTH-TOKEN": request.session.get('token')
                     }
-            
+            request.session['player1'] = name1
+            request.session['player2'] = name2
             data = {
                     "participants": [
                         {
