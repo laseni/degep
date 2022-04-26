@@ -11,7 +11,7 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget = forms.PasswordInput())
     
 class CreateGameForm(forms.Form):
-    dgdl_file = forms.CharField(widget = forms.FileInput()) 
+    dialogueID = forms.CharField()
     
 
 class DialogueCreateForm(forms.Form):
@@ -22,4 +22,11 @@ class ChatForm(forms.Form):
     dialogue1 = forms.CharField() 
     dialogue2 = forms.CharField()
     reply1 = forms.CharField()
-    reply2 = forms.CharField()                                                                                                                                                                                                        
+    reply2 = forms.CharField() 
+    
+class DialogueMoves(forms.Form):
+    dialogueID = forms.CharField()
+
+class MoveForm(forms.Form):
+        dialogueID = forms.CharField()
+                                                                                                                                                                                                       

@@ -7,12 +7,14 @@ from .forms import LoginForm
 from .forms import CreateGameForm
 from .forms import DialogueCreateForm
 from .forms import ChatForm
+from .forms import DialogueMoves
+from .forms import MoveForm
 
 def index(request):
     return render(request, 'index.html')
 
 
-def login(request):
+def signin(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -32,36 +34,16 @@ def login(request):
             }
             
             response = requests.post(url, headers=headers, json=data)
+            request.session['token'] = response.text
             if response.status_code==200:         
                 return redirect(playgame)
             
+    
+def login(request):
     context ={}
     context['form']= LoginForm()
     return render(request, "login.html", context)
 
-# def reg(request):
-#     if request.method == 'POST':
-#         form = SignupForm(request.POST)
-#         if form.is_valid():
-#             username = form.cleaned_data['username']
-#             password = form.cleaned_data['password']
-            
-#             url = "http://localhost:8888/dgep/v1/auth/register"
- 
-#             headers = {
-#                 "Content-Type": "application/json",
-#                 "accept": "application/json"
-#                 }
-            
-#             data = {
-#                 "username": username,
-#                 "password": password,
-#             }
-#             response = requests.post(url, headers=headers, json=data)
-#             if response.status_code==200:
-#                 return redirect(login)
-#             else:
-#                 return render(request, "signup.html", {'message':'Bad request'})
                     
 def signup(request):            
     if request.method == 'POST':
@@ -93,97 +75,70 @@ def signup(request):
 
 #get list of moves
 def chat(request):
-    if request.method == 'GET':
-                    
-                    url = "http://localhost:8888/dgep/v1/dialogue/deb3e517-3615-47dc-95c7-d4746837a2a3/moves"
-        
-                    headers = {
-                        "Content-Type": "application/json",
-                        "accept": "application/json",
-                        "X-AUTH-TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InNvbmcifQ.WPM60pl1lpOubYVJXashr6BMiRG3PiOD4UnCzdBscmQ"
-                        }
-                    
-                    data = {
-                            "Gen": [
-                                {
-                                "moveID": "Assert",
-                                "opener": "\"I assert \""+dialogue,
-                                "reply": {
-                                    "p": "This is so true"
-                                },
-                                "target": "Gan"
-                                }
-                            ]
+        if request.method == 'POST':
+            form = DialogueMoves(request.POST)
+            if form.is_valid():
+                dialogueID = form.cleaned_data['dialogueID']
+                
+                url = "http://localhost:8888/dgep/v1/dialogue/"+dialogueID+"/moves"
+            
+                headers = {
+                            "accept": "application/json",
+                            "X-AUTH-TOKEN":  request.session.get('token')
                             }
-                    response = requests.get(url, headers=headers, json=data)
-                    if response.status_code == 200:
-                        data = response.text
-                        return  HttpResponse(response)
+                    
+                response = requests.get(url, headers=headers,)
+                if response.status_code == 200:
+                    data = response.text
+                    request.session['dialogueID']=dialogueID
+                    return render(request, "chat.html", {"message":data})
                         
                     
-    context ={}
-    context['form']= ChatForm()
-    return render(request, "chat.html", context)
+        context ={}
+        context['form']=  DialogueMoves()
+        return render(request, "chat.html", context)
 
-def chat1(request):
-    if request.method == 'GET':
-                    dialogue = "that you are strong"
-                    
-                    url = "http://localhost:8888/dgep/v1/dialogue/deb3e517-3615-47dc-95c7-d4746837a2a3/moves"
+def status(request):
+    if request.method == 'POST':
+            form = CreateGameForm(request.POST)
+            if form.is_valid():
+                    dialogueId = form.cleaned_data['dialogueID']
+                    url = "http://localhost:8888/dgep/v1/dialogue/"+dialogueId+"/status"
         
                     headers = {
-                        "Content-Type": "application/json",
-                        "accept": "application/json",
-                        "X-AUTH-TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InNvbmcifQ.WPM60pl1lpOubYVJXashr6BMiRG3PiOD4UnCzdBscmQ"
-                        }
-                    
-                    data = {
-                            "Gen": [
-                                {
-                                "moveID": "Assert",
-                                "opener": "\"I assert \""+dialogue,
-                                "reply": {
-                                    "p": "This is so true"
-                                },
-                                "target": "Gan"
-                                }
-                            ]
+                            "accept": "application/json",
+                            "X-AUTH-TOKEN":  request.session.get('token')
                             }
-                    response = requests.get(url, headers=headers, json=data)
+                   
+                    response = requests.get(url, headers=headers)
                     if response.status_code == 200:
                         data = response.text
-                        return HttpResponse(response)
-                    else:
-                        return render(request, "chat.html", {'message':'Bad request'})
+                        return HttpResponse(data)
                     
     context ={}
-    context['form']= ChatForm()
+    context['form']=  CreateGameForm()
     return render(request, "chat.html", context)
-
-def chat2(request):
-    if request.method == 'GET':
-                    dialogue = "that you are strong"
                     
-                    url = "http://localhost:8888/dgep/v1/dialogue/0f087900-6cb9-48b5-a07a-f5fedeb8be92/status"
+
+def move(request):
+    if request.method == 'POST':
+            form = CreateGameForm(request.POST)
+            if form.is_valid():
+                    dialogueId = form.cleaned_data['dialogueID']
+                    url = "http://localhost:8888/dgep/v1/dialogue/"+dialogueId+"/moves"
         
                     headers = {
-                        "accept": "application/json",
-                        "X-AUTH-TOKEN": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InNvbmcifQ.WPM60pl1lpOubYVJXashr6BMiRG3PiOD4UnCzdBscmQ"
-                        }
-                    
-                    data = {
-                            "dialogueID": "0f087900-6cb9-48b5-a07a-f5fedeb8be92"
+                            "accept": "application/json",
+                            "X-AUTH-TOKEN":  request.session.get('token')
                             }
-                    response = requests.get(url, headers=headers, json=data)
+                   
+                    response = requests.get(url, headers=headers)
                     if response.status_code == 200:
                         data = response.text
-                        return HttpResponse(response)
-                    else:
-                        return render(request, "chat.html", {'message':'Bad request'})
-                    
+                        return HttpResponse(data)   
     context ={}
-    context['form']= ChatForm()
-    return render(request, "chat.html", context)
+    context['form']=  CreateGameForm()
+    return render(request, "chat.html", context) 
 
 
 def sayHello(request):
@@ -213,17 +168,14 @@ def dialogue(request):
             name2 = form.cleaned_data['name2']
             
             url = "http://localhost:8888/dgep/v1/dialogue/new/SimplePersuasion"
-            print(request.session.get('token'))
-            if 'token'in  request.session:
-                request.session.session_key
-                token = request.session['token']
-                headers = {
+            
+            headers = {
                     "Content-Type": "application/json",
                     "accept": "application/json",
-                    "X-AUTH-TOKEN": token
+                    "X-AUTH-TOKEN": request.session.get('token')
                     }
             
-                data = {
+            data = {
                     "participants": [
                         {
                             "name": name1,
@@ -235,11 +187,11 @@ def dialogue(request):
                         }
                     ]
                 }
-                response = requests.post(url, headers=headers, json=data)
-                if response.status_code == 200:
-                    request.session['dialogue'] = response.text 
-                    return redirect(chat)
-                else:
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code == 200:
+                    request.session['dialogue'] = response.text
+                    return render(request, "reg_dialogue.html", {'message':request.session.get('dialogue')})
+            else:
                     return render(request, "reg_dialogue.html", {'message':'Bad request'})
                         
     context ={}

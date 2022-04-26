@@ -53,6 +53,15 @@
 									Submit
 						</button>
 					</div>
+					{% if message%}
+						<div class="mb-4">
+							
+							{{message}}
+							
+						</div>
+						<br />
+						<a href="../chat/"> Copy the dialogue ID and Click this link</a>
+					{% endif %}
 				</form>
 
 				<div class="login100-more" style="background-image: url({% static 'images/chatt3.jpg'%});">
